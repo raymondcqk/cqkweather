@@ -144,6 +144,5 @@ public class MyDB {
             }while (cursor.moveToNext());
         }
         return list;
-
     }
 }
