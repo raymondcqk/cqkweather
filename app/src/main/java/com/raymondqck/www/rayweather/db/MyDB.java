@@ -2,7 +2,6 @@ package com.raymondqck.www.rayweather.db;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
@@ -12,7 +11,6 @@ import com.raymondqck.www.rayweather.model.Province;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 
 /**
  * Created by Administrator on 2016/5/21 0021.
@@ -122,8 +120,8 @@ public class MyDB {
             ContentValues values = new ContentValues();
             values.put("county_name",county.getCountyName());
             values.put("county_code",county.getCountyCode());
-            values.put("cityId",county.getCityId());
-            db.insert("City",null,values);
+            values.put("city_id",county.getCityId());
+            db.insert("County",null,values);
         }
     }
     /**

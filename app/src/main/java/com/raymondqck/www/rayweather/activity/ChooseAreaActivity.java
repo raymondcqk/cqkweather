@@ -3,7 +3,6 @@ package com.raymondqck.www.rayweather.activity;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -65,22 +64,23 @@ public class ChooseAreaActivity extends Activity {
     /**
      * 选中的县（书中没有）
      */
-    private County mSelectedCounty;
+    //private County mSelectedCounty;
 
     /**
      * 当前选中的级别
      */
     private int mCurrentLevel;
 
+
     @Override
-    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         //隐藏标题栏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         //加载地区选择布局
         setContentView(R.layout.choose_area);
-        init();
 
+        init();
     }
 
     private void init() {
@@ -92,7 +92,8 @@ public class ChooseAreaActivity extends Activity {
 
         //DB
         mMyDB = MyDB.getInstance(this);
-
+        // 加载省级数据
+        queryProvince();
         //更新点击操作
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -110,8 +111,7 @@ public class ChooseAreaActivity extends Activity {
                 }
             }
         });
-        // 加载省级数据
-        queryProvince();
+
     }
 
     /**
@@ -133,25 +133,26 @@ public class ChooseAreaActivity extends Activity {
             mCurrentLevel = LEVEL_PROVINCE;
         } else {    //若数据没数据，则通过http请求数据
             //从网络获取省份信息
-            queryFromServer(null,"province");
+            queryFromServer(null, "province");
         }
     }
+
     /**
      * 查询选中的省内所有的城市，优先从数据库查询，若无则到服务器查询
      */
     private void queryCity() {
         mCityList = mMyDB.lodaCity(mSelectedProvince.getId());
-        if (mCityList.size()>0){
+        if (mCityList.size() > 0) {
             dataList.clear();
-            for (City city:mCityList) {
-            dataList.add(city.getCityName());
+            for (City city : mCityList) {
+                dataList.add(city.getCityName());
             }
             mAdapter.notifyDataSetChanged();
             mListView.setSelection(0);
             mTitleText.setText(mSelectedProvince.getProvinceName());
             mCurrentLevel = LEVEL_CITY;
-        }else {
-            queryFromServer(mSelectedProvince.getProvinceCode(),"city");
+        } else {
+            queryFromServer(mSelectedProvince.getProvinceCode(), "city");
         }
 
 
@@ -162,31 +163,32 @@ public class ChooseAreaActivity extends Activity {
      */
     private void queryCounty() {
         mCountyList = mMyDB.loadCounty(mSelectedCity.getId());
-        if (mCountyList.size()>0){
+        if (mCountyList.size() > 0) {
             dataList.clear();
-            for (County county:mCountyList){
+            for (County county : mCountyList) {
                 dataList.add(county.getCountyName());
             }
             mAdapter.notifyDataSetChanged();
             mListView.setSelection(0);
             mTitleText.setText(mSelectedCity.getCityName());
             mCurrentLevel = LEVEL_COUNTY;
-        }else {
-            queryFromServer(mSelectedCity.getCityCode(),"county");
+        } else {
+            queryFromServer(mSelectedCity.getCityCode(), "county");
         }
     }
 
 
     /**
      * 根据传入的代号和类型从服务器查询省/市/县数据
+     *
      * @param code
      * @param type
      */
     private void queryFromServer(final String code, final String type) {
         String address;
-        if (!TextUtils.isEmpty(code)){
-            address = "http://www.weather.com.cn/data/list3/city"+code+".xml";
-        }else {
+        if (!TextUtils.isEmpty(code)) {
+            address = "http://www.weather.com.cn/data/list3/city" + code + ".xml";
+        } else {
             address = "http://www.weather.com.cn/data/list3/city.xml";
         }
         showProgressDialog();
@@ -195,24 +197,24 @@ public class ChooseAreaActivity extends Activity {
             @Override
             public void onFinish(String response) {
                 boolean result = false;
-                if ("province".equals(type)){   //字符串匹配 用 equals（）
-                    result = Utility.handleProvinceResponse(mMyDB,response);
-                }else if ("city".equals(type)){
-                    result = Utility.handleCityResponse(mMyDB,response,mSelectedProvince.getId());
-                }else if ("county".equals(type)){
-                    result = Utility.handleCountyResponse(mMyDB,response,mSelectedCity.getId());
+                if ("province".equals(type)) {   //字符串匹配 用 equals（）
+                    result = Utility.handleProvinceResponse(mMyDB, response);
+                } else if ("city".equals(type)) {
+                    result = Utility.handleCityResponse(mMyDB, response, mSelectedProvince.getId());
+                } else if ("county".equals(type)) {
+                    result = Utility.handleCountyResponse(mMyDB, response, mSelectedCity.getId());
                 }
-                if (result){
+                if (result) {
                     //通过runOnUiThread()返回到主线程处理逻辑
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             closeProgressDialog();
-                            if ("province".equals(type)){
+                            if ("province".equals(type)) {
                                 queryProvince();
-                            }else if ("city".equals(type)){
+                            } else if ("city".equals(type)) {
                                 queryCity();
-                            }else if ("county".equals(type)){
+                            } else if ("county".equals(type)) {
                                 queryCounty();
                             }
                         }
@@ -227,7 +229,7 @@ public class ChooseAreaActivity extends Activity {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(ChooseAreaActivity.this,"加载失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChooseAreaActivity.this, "加载失败", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -238,7 +240,7 @@ public class ChooseAreaActivity extends Activity {
      * 显示进度对话框
      */
     private void showProgressDialog() {
-        if (mProgressDialog == null){
+        if (mProgressDialog == null) {
             mProgressDialog = new ProgressDialog(this);
             mProgressDialog.setMessage("正在加载ing...");
             //设置点击空白区不可关闭进度对话框
@@ -251,8 +253,8 @@ public class ChooseAreaActivity extends Activity {
     /**
      * 关闭进度对话框
      */
-    private void closeProgressDialog(){
-        if (mProgressDialog != null){
+    private void closeProgressDialog() {
+        if (mProgressDialog != null) {
             mProgressDialog.dismiss();
         }
     }
@@ -262,13 +264,12 @@ public class ChooseAreaActivity extends Activity {
      */
     @Override
     public void onBackPressed() {
-       if (mCurrentLevel == LEVEL_COUNTY){
-           queryCity();
-       }else if (mCurrentLevel == LEVEL_CITY){
-           queryProvince();
-       }else if (mCurrentLevel == LEVEL_PROVINCE){
-           finish();
-       }
-
+        if (mCurrentLevel == LEVEL_COUNTY) {
+            queryCity();
+        } else if (mCurrentLevel == LEVEL_CITY) {
+            queryProvince();
+        } else if (mCurrentLevel == LEVEL_PROVINCE) {
+            finish();
+        }
     }
 }
