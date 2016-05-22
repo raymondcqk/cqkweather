@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.raymondqck.www.rayweather.receiver.AutoUpdateReceiver;
 import com.raymondqck.www.rayweather.utils.HttpCallBackListener;
@@ -35,10 +36,11 @@ public class AutoUpdateService extends Service {
 				updateWeather();
 			}
 		}).start();
+		Toast.makeText(getApplicationContext(),"自动更新",Toast.LENGTH_SHORT).show();
 		AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
 //		int anHour = 8 * 60 * 60 * 1000; // 这是8小时的毫秒数
-		int anHour = 3 * 1000; // 这是8小时的毫秒数
-		long triggerAtTime = SystemClock.elapsedRealtime() + anHour;
+		int t = 3 * 1000; // 这是3s的毫秒数
+		long triggerAtTime = SystemClock.elapsedRealtime() + t;
 		Intent i = new Intent(this, AutoUpdateReceiver.class);
 		PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
 		manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
@@ -46,7 +48,7 @@ public class AutoUpdateService extends Service {
 	}
 	
 	/**
-	 * 更新天气信息。
+	 * 更新天气信息
 	 */
 	private void updateWeather() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -64,5 +66,4 @@ public class AutoUpdateService extends Service {
 			}
 		});
 	}
-
 }
